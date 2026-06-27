@@ -42,6 +42,8 @@ export default function Planner() {
       setSubtasks(plan.subtasks);
       setPlanTask(data.task ?? task.trim());
       toast.success("Plan generated successfully!");
+      // Dispatch event for Dashboard tracking
+      window.dispatchEvent(new CustomEvent("aiPlanGenerated"));
     } catch (err) {
       const message =
         err instanceof SyntaxError
@@ -55,7 +57,7 @@ export default function Planner() {
     }
   };
 
-  const saveAllTasks = () => {
+  const saveAllTasks = async () => {
     const tasksToSave = subtasks.map((subtask) => ({
       title: subtask.title,
       deadline: deadline || "Not specified",
@@ -63,13 +65,18 @@ export default function Planner() {
       status: "Todo",
     }));
 
-    const result = addMultipleTasks(tasksToSave, deadline || "Not specified");
-    if (result.added > 0) {
-      toast.success(
-        `Saved ${result.added} task${result.added > 1 ? "s" : ""} to your task list${result.skipped > 0 ? ` (${result.skipped} duplicate${result.skipped > 1 ? "s" : ""} skipped)` : ""}.`
-      );
-    } else {
-      toast.info("No new tasks added (all duplicates).");
+    try {
+      const result = await addMultipleTasks(tasksToSave, deadline || "Not specified");
+      if (result.added > 0) {
+        toast.success(
+          `Saved ${result.added} task${result.added > 1 ? "s" : ""} to your task list${result.skipped > 0 ? ` (${result.skipped} duplicate${result.skipped > 1 ? "s" : ""} skipped)` : ""}.`
+        );
+      } else {
+        toast.info("No new tasks added (all duplicates).");
+      }
+    } catch (error) {
+      toast.error("Failed to save tasks. Please try again.");
+      console.error(error);
     }
   };
 

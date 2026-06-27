@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import StatCard from "../components/StatCard";
 import SkeletonLoader from "../components/SkeletonLoader";
+import NumberAnimation from "../components/NumberAnimation";
 import { PRIORITY_STYLES } from "../services/mockData";
 import { useTasks } from "../context/TaskContext";
 import {
@@ -13,6 +14,8 @@ import {
   HiOutlineExclamation,
   HiOutlineSparkles,
   HiOutlineLightningBolt,
+  HiOutlinePlus,
+  HiOutlineInbox,
 } from "react-icons/hi";
 import {
   BarChart,
@@ -33,15 +36,48 @@ import {
 export default function Dashboard() {
   const { tasks } = useTasks();
   const [loading, setLoading] = useState(true);
-  const [aiPlansGenerated, setAiPlansGenerated] = useState(0);
-  const [rescueSessions, setRescueSessions] = useState(0);
+  const [aiPlansGenerated, setAiPlansGenerated] = useState(() => {
+    const saved = localStorage.getItem("aiPlansGenerated");
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [rescueSessions, setRescueSessions] = useState(() => {
+    const saved = localStorage.getItem("rescueSessions");
+    return saved ? parseInt(saved, 10) : 0;
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
-  const stats = {
+  // Listen for custom events from Planner and RescueMode
+  useEffect(() => {
+    const handlePlanGenerated = () => {
+      setAiPlansGenerated((prev) => {
+        const newValue = prev + 1;
+        localStorage.setItem("aiPlansGenerated", newValue.toString());
+        return newValue;
+      });
+    };
+
+    const handleRescueSession = () => {
+      setRescueSessions((prev) => {
+        const newValue = prev + 1;
+        localStorage.setItem("rescueSessions", newValue.toString());
+        return newValue;
+      });
+    };
+
+    window.addEventListener("aiPlanGenerated", handlePlanGenerated);
+    window.addEventListener("rescueSession", handleRescueSession);
+
+    return () => {
+      window.removeEventListener("aiPlanGenerated", handlePlanGenerated);
+      window.removeEventListener("rescueSession", handleRescueSession);
+    };
+  }, []);
+
+  const stats = useMemo(() => ({
     totalTasks: tasks.length,
     completedTasks: tasks.filter((t) => t.status === "Done").length,
     pendingTasks: tasks.filter((t) => t.status !== "Done").length,
@@ -54,7 +90,7 @@ export default function Dashboard() {
     }).length,
     aiPlansGenerated,
     rescueSessions,
-  };
+  }), [tasks, aiPlansGenerated, rescueSessions]);
 
   const progress = {
     completionRate: stats.totalTasks > 0 ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0,
@@ -112,7 +148,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
         {loading ? (
           <>
             <SkeletonLoader className="h-32" />
@@ -124,28 +160,28 @@ export default function Dashboard() {
           <>
             <StatCard
               label="Total Tasks"
-              value={stats.totalTasks}
+              value={<NumberAnimation value={stats.totalTasks} />}
               change="Across all projects"
               trend="neutral"
               icon={HiOutlineClipboardList}
             />
             <StatCard
               label="Completed Tasks"
-              value={stats.completedTasks}
+              value={<NumberAnimation value={stats.completedTasks} />}
               change="+3 this week"
               trend="up"
               icon={HiOutlineCheckCircle}
             />
             <StatCard
               label="Pending Tasks"
-              value={stats.pendingTasks}
+              value={<NumberAnimation value={stats.pendingTasks} />}
               change="Need attention"
               trend="neutral"
               icon={HiOutlineClock}
             />
             <StatCard
               label="Overdue Tasks"
-              value={stats.overdueTasks}
+              value={<NumberAnimation value={stats.overdueTasks} />}
               change="Action required"
               trend="down"
               icon={HiOutlineExclamation}
@@ -159,21 +195,21 @@ export default function Dashboard() {
             />
             <StatCard
               label="AI Plans"
-              value={stats.aiPlansGenerated}
+              value={<NumberAnimation value={stats.aiPlansGenerated} />}
               change="Generated this session"
               trend="up"
               icon={HiOutlineSparkles}
             />
             <StatCard
               label="Rescue Sessions"
-              value={stats.rescueSessions}
+              value={<NumberAnimation value={stats.rescueSessions} />}
               change="Deadline guardian"
               trend="neutral"
               icon={HiOutlineLightningBolt}
             />
             <StatCard
               label="Upcoming Deadlines"
-              value={stats.upcomingDeadlines}
+              value={<NumberAnimation value={stats.upcomingDeadlines} />}
               change="Next 7 days"
               trend="down"
               icon={HiOutlineCalendar}
@@ -252,7 +288,20 @@ export default function Dashboard() {
                 </span>
               </div>
               {todayTasks.length === 0 ? (
-                <p className="py-8 text-center text-sm text-slate-500">No tasks due today</p>
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                    <HiOutlineInbox className="h-8 w-8" />
+                  </div>
+                  <p className="mt-4 text-sm font-medium text-slate-600">No tasks due today</p>
+                  <p className="mt-1 text-xs text-slate-400">Enjoy your free time!</p>
+                  <Link
+                    to="/tasks"
+                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 hover:scale-105"
+                  >
+                    <HiOutlinePlus className="h-4 w-4" />
+                    Create Task
+                  </Link>
+                </div>
               ) : (
                 <ul className="space-y-3">
                   {todayTasks.slice(0, 5).map((task) => (
@@ -285,13 +334,24 @@ export default function Dashboard() {
               <ul className="divide-y divide-slate-100">
                 {recentTasks.map((task) => (
                   <li key={task.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
-                    <div>
-                      <p className="font-medium text-slate-900">{task.title}</p>
-                      <p className="mt-0.5 text-sm text-slate-500">{task.due}</p>
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      {task.status === "Done" && (
+                        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                          <HiOutlineCheckCircle className="h-3 w-3" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className={`font-medium text-slate-900 ${task.status === "Done" ? "line-through text-slate-400" : ""}`}>
+                          {task.title}
+                        </p>
+                        <p className="mt-0.5 text-sm text-slate-500">{task.due}</p>
+                      </div>
                     </div>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${PRIORITY_STYLES[task.priority]}`}>
-                      {task.priority}
-                    </span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${PRIORITY_STYLES[task.priority]}`}>
+                        {task.priority}
+                      </span>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -315,13 +375,19 @@ export default function Dashboard() {
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weeklyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="completed" name="Completed" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="planned" name="Planned" fill="#cbd5e1" radius={[4, 4, 0, 0]} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                    <XAxis dataKey="day" tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        borderRadius: "8px", 
+                        border: "none", 
+                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" 
+                      }} 
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: "12px" }} />
+                    <Bar dataKey="completed" name="Completed" fill="#6366f1" radius={[4, 4, 0, 0]} animationDuration={800} />
+                    <Bar dataKey="planned" name="Planned" fill="#cbd5e1" radius={[4, 4, 0, 0]} animationDuration={800} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -341,13 +407,20 @@ export default function Dashboard() {
                       outerRadius={80}
                       paddingAngle={5}
                       dataKey="value"
+                      animationDuration={800}
                     >
                       {priorityData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend />
+                    <Tooltip 
+                      contentStyle={{ 
+                        borderRadius: "8px", 
+                        border: "none", 
+                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" 
+                      }} 
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: "12px" }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -370,12 +443,14 @@ export default function Dashboard() {
                       className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                         item.daysLeft === 0
                           ? "bg-rose-100 text-rose-700"
-                          : item.daysLeft <= 2
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-slate-200 text-slate-600"
+                          : item.daysLeft === 1
+                            ? "bg-orange-100 text-orange-700"
+                            : item.daysLeft <= 3
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-blue-100 text-blue-700"
                       }`}
                     >
-                      {item.daysLeft === 0 ? "Today" : `${item.daysLeft}d left`}
+                      {item.daysLeft === 0 ? "Today" : item.daysLeft === 1 ? "Tomorrow" : `${item.daysLeft}d left`}
                     </span>
                   </li>
                 ))}
@@ -395,11 +470,17 @@ export default function Dashboard() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Legend />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="day" tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      borderRadius: "8px", 
+                      border: "none", 
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" 
+                    }} 
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: "12px" }} />
                   <Line
                     type="monotone"
                     dataKey="completed"
@@ -407,6 +488,8 @@ export default function Dashboard() {
                     stroke="#6366f1"
                     strokeWidth={2}
                     dot={{ fill: "#6366f1", r: 4 }}
+                    activeDot={{ r: 6, stroke: "#6366f1", strokeWidth: 2 }}
+                    animationDuration={800}
                   />
                   <Line
                     type="monotone"
@@ -415,6 +498,8 @@ export default function Dashboard() {
                     stroke="#cbd5e1"
                     strokeWidth={2}
                     dot={{ fill: "#cbd5e1", r: 4 }}
+                    activeDot={{ r: 6, stroke: "#cbd5e1", strokeWidth: 2 }}
+                    animationDuration={800}
                   />
                 </LineChart>
               </ResponsiveContainer>

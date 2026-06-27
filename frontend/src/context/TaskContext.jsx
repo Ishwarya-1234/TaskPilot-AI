@@ -1,66 +1,71 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import { getTasks, createTask as apiCreateTask, updateTask as apiUpdateTask, deleteTask as apiDeleteTask } from "../services/api";
 
 const TaskContext = createContext(null);
 
-const INITIAL_TASKS = [
-  {
-    id: 1,
-    title: "Build TaskPilot dashboard UI",
-    deadline: "2026-06-25",
-    priority: "High",
-    status: "In Progress",
-  },
-  {
-    id: 2,
-    title: "Wire up React Router pages",
-    deadline: "2026-06-24",
-    priority: "Medium",
-    status: "Done",
-  },
-  {
-    id: 3,
-    title: "Design Rescue Mode flow",
-    deadline: "2026-06-26",
-    priority: "High",
-    status: "Todo",
-  },
-  {
-    id: 4,
-    title: "Prepare hackathon demo script",
-    deadline: "2026-06-27",
-    priority: "Low",
-    status: "Todo",
-  },
-];
-
 export function TaskProvider({ children }) {
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const addTask = ({ title, deadline, priority, status }) => {
-    setTasks((prev) => [
-      {
-        id: Date.now(),
+  // Load tasks from backend on mount
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        const fetchedTasks = await getTasks();
+        setTasks(fetchedTasks);
+      } catch (error) {
+        console.error("Failed to load tasks:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadTasks();
+  }, []);
+
+  const addTask = async ({ title, deadline, priority, status }) => {
+    try {
+      const newTask = await apiCreateTask({
         title,
-        deadline: deadline || "",
+        deadline: deadline || "Not specified",
         priority: priority || "Medium",
         status: status || "Todo",
-      },
-      ...prev,
-    ]);
+      });
+      setTasks((prev) => [newTask, ...prev]);
+      return newTask;
+    } catch (error) {
+      console.error("Failed to add task:", error);
+      throw error;
+    }
   };
 
-  const markComplete = (id) => {
-    setTasks((prev) =>
-      prev.map((task) => (task.id === id ? { ...task, status: "Done" } : task)),
-    );
+  const markComplete = async (id) => {
+    try {
+      const updatedTask = await apiUpdateTask(id, { status: "Done" });
+      setTasks((prev) => prev.map((task) => (task.id === id ? updatedTask : task)));
+    } catch (error) {
+      console.error("Failed to mark task complete:", error);
+      throw error;
+    }
   };
 
-  const deleteTask = (id) => {
-    setTasks((prev) => prev.filter((task) => task.id !== id));
+  const deleteTask = async (id) => {
+    try {
+      await apiDeleteTask(id);
+      setTasks((prev) => prev.filter((task) => task.id !== id));
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+      throw error;
+    }
   };
 
-  const updateTaskStatus = (id, status) => {
-    setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, status } : task)));
+  const updateTaskStatus = async (id, status) => {
+    try {
+      const updatedTask = await apiUpdateTask(id, { status });
+      setTasks((prev) => prev.map((task) => (task.id === id ? updatedTask : task)));
+    } catch (error) {
+      console.error("Failed to update task status:", error);
+      throw error;
+    }
   };
 
   const isDuplicate = (title, deadline) => {
@@ -71,22 +76,29 @@ export function TaskProvider({ children }) {
     );
   };
 
-  const addMultipleTasks = (taskArray, baseDeadline = "") => {
-    const newTasks = taskArray
-      .filter((task) => !isDuplicate(task.title, baseDeadline))
-      .map((task) => ({
-        id: Date.now() + Math.random(),
-        title: task.title,
-        deadline: task.deadline || baseDeadline,
-        priority: task.priority || "Medium",
-        status: task.status || "Todo",
-      }));
+  const addMultipleTasks = async (taskArray, baseDeadline = "") => {
+    const newTasks = taskArray.filter((task) => !isDuplicate(task.title, baseDeadline));
+    const createdTasks = [];
 
-    if (newTasks.length > 0) {
-      setTasks((prev) => [...newTasks, ...prev]);
+    for (const task of newTasks) {
+      try {
+        const created = await apiCreateTask({
+          title: task.title,
+          deadline: task.deadline || baseDeadline || "Not specified",
+          priority: task.priority || "Medium",
+          status: task.status || "Todo",
+        });
+        createdTasks.push(created);
+      } catch (error) {
+        console.error("Failed to create task:", error);
+      }
     }
 
-    return { added: newTasks.length, skipped: taskArray.length - newTasks.length };
+    if (createdTasks.length > 0) {
+      setTasks((prev) => [...createdTasks, ...prev]);
+    }
+
+    return { added: createdTasks.length, skipped: taskArray.length - createdTasks.length };
   };
 
   return (

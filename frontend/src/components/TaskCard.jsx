@@ -57,9 +57,14 @@ export default function TaskCard({ task, onComplete, onDelete, onStatusChange })
           {onComplete && !isDone && (
             <button
               type="button"
-              onClick={() => {
-                onComplete(task.id);
-                toast.success("Task completed!");
+              onClick={async () => {
+                try {
+                  await onComplete(task.id);
+                  toast.success("Task completed!");
+                } catch (error) {
+                  toast.error("Failed to complete task. Please try again.");
+                  console.error(error);
+                }
               }}
               className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-all duration-200 hover:bg-emerald-700 hover:scale-105 active:scale-95"
             >
@@ -70,9 +75,14 @@ export default function TaskCard({ task, onComplete, onDelete, onStatusChange })
           {onDelete && (
             <button
               type="button"
-              onClick={() => {
-                onDelete(task.id);
-                toast.success("Task deleted!");
+              onClick={async () => {
+                try {
+                  await onDelete(task.id);
+                  toast.success("Task deleted!");
+                } catch (error) {
+                  toast.error("Failed to delete task. Please try again.");
+                  console.error(error);
+                }
               }}
               className="rounded-lg border border-slate-200 p-1.5 text-slate-400 transition-all duration-200 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 hover:scale-110 active:scale-95"
               aria-label="Delete task"

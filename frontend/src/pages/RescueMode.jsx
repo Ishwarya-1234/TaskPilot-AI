@@ -45,12 +45,14 @@ export default function RescueMode() {
         ...parsed,
       });
       toast.success("Rescue plan created successfully!");
+      // Dispatch event for Dashboard tracking
+      window.dispatchEvent(new CustomEvent("rescueSession"));
     } catch (err) {
       const message =
         err instanceof SyntaxError
           ? "AI returned an invalid rescue plan format. Please try again."
           : err.message?.includes("Failed to fetch")
-            ? "Cannot reach the backend. Start FastAPI on port 8000 and restart the Vite dev server."
+            ? "Cannot reach the backend. Please check your internet connection."
             : err.message || "Failed to generate rescue plan.";
       setError(message);
       toast.error(message);
@@ -67,7 +69,7 @@ export default function RescueMode() {
 
   const totalAllocatedHours = plan?.timeAllocation.reduce((sum, item) => sum + item.hours, 0);
 
-  const convertToTasks = () => {
+  const convertToTasks = async () => {
     if (!plan) return;
 
     const tasksToSave = plan.emergencyActionPlan.map((action) => ({
@@ -77,13 +79,18 @@ export default function RescueMode() {
       status: "Todo",
     }));
 
-    const result = addMultipleTasks(tasksToSave, deadline || "Not specified");
-    if (result.added > 0) {
-      toast.success(
-        `Converted ${result.added} emergency action${result.added > 1 ? "s" : ""} to task${result.added > 1 ? "s" : ""}${result.skipped > 0 ? ` (${result.skipped} duplicate${result.skipped > 1 ? "s" : ""} skipped)` : ""}.`
-      );
-    } else {
-      toast.info("No new tasks added (all duplicates).");
+    try {
+      const result = await addMultipleTasks(tasksToSave, deadline || "Not specified");
+      if (result.added > 0) {
+        toast.success(
+          `Converted ${result.added} emergency action${result.added > 1 ? "s" : ""} to task${result.added > 1 ? "s" : ""}${result.skipped > 0 ? ` (${result.skipped} duplicate${result.skipped > 1 ? "s" : ""} skipped)` : ""}.`
+        );
+      } else {
+        toast.info("No new tasks added (all duplicates).");
+      }
+    } catch (error) {
+      toast.error("Failed to convert tasks. Please try again.");
+      console.error(error);
     }
   };
 

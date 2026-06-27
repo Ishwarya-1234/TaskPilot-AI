@@ -26,16 +26,6 @@ export default function Navbar({ title, subtitle }) {
           <HiOutlineBell className="h-5 w-5" />
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500" />
         </button>
-
-        <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
-          <div className="hidden text-right sm:block">
-            <p className="text-sm font-medium text-slate-900">Alex Morgan</p>
-            <p className="text-xs text-slate-500">Productivity Mode</p>
-          </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-semibold text-white">
-            AM
-          </div>
-        </div>
       </div>
     </header>
   );

@@ -65,7 +65,7 @@ export default function Landing() {
         </div>
         <Link
           to="/dashboard"
-          className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur transition hover:bg-white/20"
+          className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur transition-all duration-300 hover:bg-white/20 hover:scale-105"
         >
           Open App
         </Link>
@@ -131,7 +131,7 @@ export default function Landing() {
             </p>
           </div>
           <div className="mt-16 grid gap-8 sm:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur transition-all duration-300 hover:border-white/20 hover:bg-white/10 hover:scale-105">
               <div className="inline-flex rounded-xl bg-indigo-500/20 p-4 text-indigo-400">
                 <HiOutlineSparkles className="h-8 w-8" />
               </div>
@@ -140,7 +140,7 @@ export default function Landing() {
                 Gemini breaks down complex tasks into actionable steps automatically
               </p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur transition-all duration-300 hover:border-white/20 hover:bg-white/10 hover:scale-105">
               <div className="inline-flex rounded-xl bg-rose-500/20 p-4 text-rose-400">
                 <HiOutlineLightningBolt className="h-8 w-8" />
               </div>
@@ -149,7 +149,7 @@ export default function Landing() {
                 Emergency rescue plans when you're running out of time
               </p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur transition-all duration-300 hover:border-white/20 hover:bg-white/10 hover:scale-105">
               <div className="inline-flex rounded-xl bg-violet-500/20 p-4 text-violet-400">
                 <HiOutlineChat className="h-8 w-8" />
               </div>
@@ -169,8 +169,8 @@ export default function Landing() {
             </p>
           </div>
           <div className="mt-16 grid gap-8 sm:grid-cols-3">
-            <div className="text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500 text-2xl font-bold">
+            <div className="text-center transition-all duration-300 hover:scale-105">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500 text-2xl font-bold shadow-lg shadow-indigo-500/30">
                 1
               </div>
               <h3 className="mt-5 text-xl font-semibold">Add Your Tasks</h3>
@@ -178,8 +178,8 @@ export default function Landing() {
                 Import tasks or let AI break down your goals
               </p>
             </div>
-            <div className="text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-500 text-2xl font-bold">
+            <div className="text-center transition-all duration-300 hover:scale-105">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-500 text-2xl font-bold shadow-lg shadow-violet-500/30">
                 2
               </div>
               <h3 className="mt-5 text-xl font-semibold">Plan & Prioritize</h3>
@@ -187,8 +187,8 @@ export default function Landing() {
                 Use AI Planner or Deadline Guardian for smart scheduling
               </p>
             </div>
-            <div className="text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500 text-2xl font-bold">
+            <div className="text-center transition-all duration-300 hover:scale-105">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500 text-2xl font-bold shadow-lg shadow-emerald-500/30">
                 3
               </div>
               <h3 className="mt-5 text-xl font-semibold">Crush Your Goals</h3>
@@ -207,7 +207,7 @@ export default function Landing() {
             </p>
           </div>
           <div className="mt-16 grid gap-8 sm:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur transition-all duration-300 hover:border-white/20 hover:bg-white/10 hover:scale-105">
               <div className="flex gap-1 text-amber-400">
                 {[...Array(5)].map((_, i) => (
                   <HiOutlineStar key={i} className="h-5 w-5 fill-current" />
@@ -226,7 +226,7 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur transition-all duration-300 hover:border-white/20 hover:bg-white/10 hover:scale-105">
               <div className="flex gap-1 text-amber-400">
                 {[...Array(5)].map((_, i) => (
                   <HiOutlineStar key={i} className="h-5 w-5 fill-current" />
@@ -245,7 +245,7 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur transition-all duration-300 hover:border-white/20 hover:bg-white/10 hover:scale-105">
               <div className="flex gap-1 text-amber-400">
                 {[...Array(5)].map((_, i) => (
                   <HiOutlineStar key={i} className="h-5 w-5 fill-current" />

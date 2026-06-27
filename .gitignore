@@ -7,6 +7,10 @@ backend/venv/
 __pycache__/
 *.pyc
 
+# Database
+tasks.db
+backend/tasks.db
+
 # Environment variables
 .env
 backend/.env

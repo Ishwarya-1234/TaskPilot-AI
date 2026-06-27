@@ -1,4 +1,6 @@
 from pydantic import BaseModel, Field
+from datetime import datetime
+from typing import Optional
 
 
 class TaskRequest(BaseModel):
@@ -45,3 +47,46 @@ class HealthResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     error: str
+
+
+# Task CRUD Models
+class TaskCreate(BaseModel):
+    title: str
+    deadline: str
+    priority: str = "Medium"
+    status: str = "Todo"
+
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    deadline: Optional[str] = None
+    priority: Optional[str] = None
+    status: Optional[str] = None
+
+
+class TaskResponse(BaseModel):
+    id: int
+    title: str
+    deadline: str
+    priority: str
+    status: str
+    created_at: str
+
+    class Config:
+        from_attributes = True
+
+
+# Chat History Models
+class ChatMessageCreate(BaseModel):
+    role: str
+    content: str
+
+
+class ChatMessageResponse(BaseModel):
+    id: int
+    role: str
+    content: str
+    timestamp: str
+
+    class Config:
+        from_attributes = True
