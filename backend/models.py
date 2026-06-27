@@ -80,6 +80,7 @@ class TaskResponse(BaseModel):
 class ChatMessageCreate(BaseModel):
     role: str
     content: str
+    timestamp: Optional[str] = None
 
 
 class ChatMessageResponse(BaseModel):

@@ -88,7 +88,7 @@ export default function Chat() {
 
       const assistantMessage = { role: "assistant", content: data.reply, timestamp: new Date().toISOString() };
       setMessages((prev) => [...prev, assistantMessage]);
-      await saveChatMessage({ role: "assistant", content: data.reply });
+      await saveChatMessage({ role: "assistant", content: data.reply, timestamp: assistantMessage.timestamp });
     } catch (err) {
       setError(err.message || "Failed to regenerate response.");
       toast.error(err.message || "Failed to regenerate response.");
@@ -112,7 +112,7 @@ export default function Chat() {
     setLastMessage(text);
 
     try {
-      await saveChatMessage({ role: "user", content: text });
+      await saveChatMessage({ role: "user", content: text, timestamp: userMessage.timestamp });
 
       const history = messages
         .filter((m) => m.role === "user" || m.role === "assistant")
@@ -126,7 +126,7 @@ export default function Chat() {
       const assistantMessage = { role: "assistant", content: data.reply, timestamp: new Date().toISOString() };
       setMessages((prev) => [...prev, assistantMessage]);
 
-      await saveChatMessage({ role: "assistant", content: data.reply });
+      await saveChatMessage({ role: "assistant", content: data.reply, timestamp: assistantMessage.timestamp });
     } catch (err) {
       setError(err.message || "Failed to send message.");
       toast.error(err.message || "Failed to send message.");

@@ -245,12 +245,14 @@ def save_chat_message(message: ChatMessageCreate):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        # Use frontend-provided timestamp if available, otherwise use server time
+        timestamp = message.timestamp if message.timestamp else datetime.now().isoformat()
         cursor.execute(
             """
             INSERT INTO chat_history (role, content, timestamp)
             VALUES (?, ?, ?)
             """,
-            (message.role, message.content, datetime.now().isoformat())
+            (message.role, message.content, timestamp)
         )
         conn.commit()
         msg_id = cursor.lastrowid
